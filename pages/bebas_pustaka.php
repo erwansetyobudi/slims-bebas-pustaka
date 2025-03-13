@@ -145,7 +145,9 @@ if (isset($_GET['action']) && $_GET['action'] === 'print')
         <div class="sub_section">
             <div class="btn-group">
                 <a target="blindSubmit" href="<?= $_SERVER['PHP_SELF'] . '?' . httpQuery(['action' => 'clear']) ?>" class="notAJAX btn btn-danger mx-1"><?= __('Clear Print Queue') ?></a>
-                <a href="<?= $_SERVER['PHP_SELF'] . '?' . httpQuery(['action' => 'print']) ?>" id="print" width="765" height="500" class="notAJAX openPopUp btn btn-primary mx-1">Cetak Kembali Surat Bebas Pustaka</a>
+                <a href="<?= $_SERVER['PHP_SELF'] . '?' . httpQuery(['action' => 'print']) ?>" id="print" width="765" height="500" class="notAJAX openPopUp btn btn-primary mx-1">Cetak Surat Bebas Pustaka</a>
+                <a href="<?= $_SERVER['PHP_SELF'] . '?' . httpQuery(['action' => 'settings']) ?>" id="setting" class="notAJAX btn btn-default openPopUp mx-1" title="Ubah Pengaturan Bebas Pustaka">Ubah Pengaturan Bebas Pustaka</a>
+            
             </div>
             <form name="search" action="<?= $_SERVER['PHP_SELF'] . '?' . httpQuery() ?>" id="search" method="get" class="form-inline"><?php echo __('Search'); ?>
                 <input type="text" name="keywords" class="form-control col-md-3"/>
@@ -182,85 +184,59 @@ if (isset($_GET['action']) && $_GET['action'] === 'print')
 
 <?php
 /* Datagrid area */
-/**
- * table spec
- * ---------------------------------------
- * Tuliskan nama tabel pada variabel $table_spec. Apabila anda 
- * ingin melakukan pegabungan banyak tabel, maka anda cukup menulis kan
- * nya saja layak nya membuat query seperti biasa
- *
- * Contoh :
- * - dummy_plugin as dp left join non_dummy_plugin as ndp on dp.id = ndp.id ... dst
- *
- */
-$table_spec = 'member as m LEFT JOIN mst_member_type as mt ON m.member_type_id = mt.member_type_id';
 
-// membuat datagrid
+// Menentukan tabel dengan LEFT JOIN dan memastikan tidak ada duplikasi dengan GROUP BY
+$table_spec = 'member AS m 
+               LEFT JOIN mst_member_type AS mt ON m.member_type_id = mt.member_type_id 
+               LEFT JOIN (
+                   SELECT member_id, 
+                          MAX(CASE 
+                              WHEN is_lent = 1 AND is_return = 0 
+                              THEN CONCAT("<span style=\'background-color:red; color:white; padding:5px; border-radius:3px;\'>Masih Terdapat Pinjaman dengan kode eksemplar ", item_code, "</span>")
+                              WHEN is_lent = 1 AND is_return = 1 
+                              THEN "<span style=\'background-color:blue; color:white; padding:5px; border-radius:3px;\'>Tidak ada Pinjaman</span>"
+                              ELSE "<span style=\'background-color:grey; color:white; padding:5px; border-radius:3px;\'>Belum Ada Pinjaman</span>"
+                          END) AS Status
+                   FROM loan
+                   GROUP BY member_id
+               ) AS l ON m.member_id = l.member_id';
+
+// Mengatur status default jika member_id tidak ditemukan di loan
+$select_status = 'COALESCE(l.Status, "<span style=\'background-color:grey; color:white; padding:5px; border-radius:3px;\'>Tidak ada Pinjaman Karena Belum Pernah Meminjam</span>") AS `Status`';
+
+// Membuat datagrid
 $datagrid = new simbio_datagrid();
 
-/** 
- * Menyiapkan kolom
- * -----------------------------------------
- * Format penulisan sama seperti anda menuliskan di query pada phpmyadmin/adminer/yang lain,
- * hanya di SLiMS anda diberikan beberapa opsi seperti, penulisan dengan gaya multi parameter,
- * dan gaya single parameter.
- *
- * Contoh :
- * - Single Parameter : $datagrid->setSQLColumn('id', 'kolom1, kolom2, kolom3'); // penulisan langsung
- * - Single Parameter : $datagrid->setSQLColumn('id', 'kolom1', 'kolom2', 'kolom3'); // penulisan secara terpisah
- *
- * Catatan :
- * - Jangan lupa menyertakan kolom yang bersifat PK (Primary Key) / FK (Foreign Key) pada urutan pertama,
- *   karena kolom tersebut digunakan untuk pengait pada proses lain.
- */
- $datagrid->setSQLColumn('m.member_id, m.member_id AS `ID Anggota`, 
-                            m.member_name AS `Nama Anggota`,
-                            mt.member_type_name AS `Jenis Keanggotaan`');
+// Menyiapkan Kolom
+$datagrid->setSQLColumn('m.member_id, 
+                         m.member_id AS `ID Anggota`, 
+                         m.member_name AS `Nama Anggota`,
+                         mt.member_type_name AS `Jenis Keanggotaan`,
+                         ' . $select_status);
 
-/** 
- * Pencarian data
- * ------------------------------------------
- * Bagian ini tidak lepas dari nama kolom dari tabel yang digunakan.
- * Jadi, untuk pencarian yang lebih banyak anda dapat menambahkan kolom pada variabel
- * $criteria
- *
- * Contoh :
- * - $criteria = ' kolom1 = "'.$keywords.'" OR kolom2 = "'.$keywords.'" OR kolom3 = "'.$keywords.'"';
- * - atau anda bisa menggunakan query anda.
- */
-$criteria = ' m.member_id NOT IN (SELECT l.member_id FROM loan AS l WHERE l.is_return = 0 AND l.is_lent = 0)';
- if (isset($_GET['keywords']) AND $_GET['keywords']) 
- {
-     $keywords = utility::filterData('keywords', 'get', true, true, true);
-     $criteria .= ' AND (member_id LIKE "%'.$keywords.'%" OR member_name LIKE "%'.$keywords.'%")';
-     // jika ada keywords maka akan disiapkan criteria nya
- }
+// Pencarian Data
+$criteria = '1=1';
+if (isset($_GET['keywords']) AND $_GET['keywords']) {
+    $keywords = utility::filterData('keywords', 'get', true, true, true);
+    $criteria .= ' AND (m.member_id LIKE "%'.$keywords.'%" OR m.member_name LIKE "%'.$keywords.'%")';
+}
 
- $datagrid->setSQLCriteria($criteria);
+// Menetapkan kriteria SQL
+$datagrid->setSQLCriteria($criteria);
 
-/** 
- * Atribut tambahan
- * --------------------------------------------
- * Pada bagian ini anda dapat menentukan atribut yang akan muncul pada datagrid
- * seperti judul tombol, dll
- */
-// set table and table header attributes
+// Atribut
 $datagrid->table_attr = 'id="dataList" class="s-table table"';
 $datagrid->table_header_attr = 'class="dataListHeader" style="font-weight: bold;"';
-// edit and checkbox property
-$datagrid->edit_property = false;
-$datagrid->chbox_property = array('itemID', __('Add'));
-$datagrid->chbox_action_button = __('Add To Print Queue');
-$datagrid->chbox_confirm_msg = __('Add to print queue?');
-$datagrid->column_width = array('5%', '45%', '50%');
-// set checkbox action URL
-$datagrid->chbox_form_URL = $_SERVER['PHP_SELF'] . '?' . httpQuery();
-// put the result into variables
-$datagrid_result = $datagrid->createDataGrid($dbs, $table_spec, 20, true); // object database, spesifikasi table, jumlah data yang muncul, boolean penentuan apakah data tersebut dapat di edit atau tidak.
+
+// Menampilkan datagrid
+$datagrid_result = $datagrid->createDataGrid($dbs, $table_spec, 20, true);
 if (isset($_GET['keywords']) AND $_GET['keywords']) {
     $msg = str_replace('{result->num_rows}', $datagrid->num_rows, __('Found <strong>{result->num_rows}</strong> from your keywords'));
     echo '<div class="infoBox">' . $msg . ' : "' . htmlspecialchars($_GET['keywords']) . '"<div>' . __('Query took') . ' <b>' . $datagrid->query_time . '</b> ' . __('second(s) to complete') . '</div></div>';
 }
-// menampilkan datagrid
+
+// Menampilkan hasil data grid
 echo $datagrid_result;
 /* End datagrid */
+
+
