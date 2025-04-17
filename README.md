@@ -38,9 +38,8 @@ Terima kasih telah menggunakan **Bebas Pustaka SLiMS**! 🚀
 
 ## ScreenShoot
 
-![image](https://github.com/user-attachments/assets/383e0c57-57e9-4a29-abec-bf9a19c64415)
-![image](https://github.com/user-attachments/assets/3ea29c19-6dc5-4a5e-80c4-bfeafe996626)
+![image](https://github.com/user-attachments/assets/faacd040-251b-4c55-9fef-5b4724bfd713)
 
-![image](https://github.com/user-attachments/assets/0ef04709-f589-494b-b82c-97842ea0d18c)
+![image](https://github.com/user-attachments/assets/4d1134db-88c7-40ed-85ae-638d3d3308e2)
 
 
