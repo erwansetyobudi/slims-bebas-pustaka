@@ -105,7 +105,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'print')
     // Menyiapkan query untuk mendapatkan data anggota
     $questionMark = trim(str_repeat('?,', count($_SESSION['bebas_pustaka'])), ',');
     $member = DB::getInstance()->prepare('
-        SELECT m.member_id, 
+        SELECT m.member_id, m.inst_name,
                m.member_name, 
                mt.member_type_name, 
                m.member_address 
