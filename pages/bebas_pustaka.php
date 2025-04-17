@@ -224,9 +224,16 @@ if (isset($_GET['keywords']) AND $_GET['keywords']) {
 // Menetapkan kriteria SQL
 $datagrid->setSQLCriteria($criteria);
 
-// Atribut
 $datagrid->table_attr = 'id="dataList" class="s-table table"';
 $datagrid->table_header_attr = 'class="dataListHeader" style="font-weight: bold;"';
+$datagrid->edit_property = false;
+$datagrid->chbox_property = array('itemID', __('Add'));
+$datagrid->chbox_action_button = __('Add To Print Queue');
+$datagrid->chbox_confirm_msg = __('Add to print queue?');
+
+
+// set checkbox action URL
+$datagrid->chbox_form_URL = $_SERVER['PHP_SELF'] . '?' . httpQuery();
 
 // Menampilkan datagrid
 $datagrid_result = $datagrid->createDataGrid($dbs, $table_spec, 20, true);
