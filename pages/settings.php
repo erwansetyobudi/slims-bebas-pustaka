@@ -1,15 +1,14 @@
 <?php
-
 /**
  * @Created by          : Drajat Hasan
  * @Date                : 2022-06-08 13:47:37
  * @File name           : index.php
  */
 
+use SLiMS\DB;
 use SLiMS\Filesystems\Storage;
 use SLiMS\Pdf\Factory;
 use SLiMS\Config;
-use SLiMS\DB;
 
 defined('INDEX_AUTH') OR die('Direct access not allowed!');
 
@@ -36,19 +35,18 @@ if (isset($_POST['saveData'])) {
     $pluginDir = getDirname();
     $pluginStorage = Storage::plugin();
     foreach ($_FILES as $name => $detail) {
-        if (empty($_FILES[$name]['name']))
-            continue;
+        if (empty($_FILES[$name]['name'])) continue;
 
-        $pluginStorage->upload($name, function ($pluginStorage) use ($sysconf) {
+        $pluginStorage->upload($name, function($pluginStorage) use($sysconf) {
             // Extension check
             $pluginStorage->isExtensionAllowed($sysconf['allowed_images']);
 
             // destroy it if failed
-            if (!empty($pluginStorage->getError()))
-                $pluginStorage->destroyIfFailed();
+            if (!empty($pluginStorage->getError())) $pluginStorage->destroyIfFailed();
+
         })->as($pluginDir . DS . 'static' . DS . str_replace('image', '', $name));
     }
-
+    
     foreach ($_POST['fields'] as $key => $value) {
         // if (!isset($defaultConfig['fields'][$key])) continue;
         $defaultConfig['fields'][$key] = $value;
@@ -65,10 +63,10 @@ if (isset($_POST['saveData'])) {
     Config::createOrUpdate('bebas_pustaka', $defaultConfig);
 
     echo <<<HTML
-        <script>
-            parent.\$( '#preview' ).attr( 'src', function ( i, val ) { return val; });
-        </script>
-        HTML;
+    <script>
+        parent.$( '#preview' ).attr( 'src', function ( i, val ) { return val; });
+    </script>
+    HTML;
     exit;
 }
 
@@ -102,8 +100,8 @@ $form->table_header_attr = 'class="alterCell"';
 $form->table_content_attr = 'class="alterCell2"';
 
 // Provider l ist
-$form->addSelectList('provider', __('Provider'), array_map(function ($provider) {
-    $class = 'BebasPustaka\\Providers\\' . str_replace('.php', '', $provider);
+$form->addSelectList('provider', __('Provider'), array_map(function($provider){
+    $class = 'BebasPustaka\Providers\\' . str_replace('.php', '', $provider);
     return [
         $class,
         $class::$name
@@ -111,42 +109,35 @@ $form->addSelectList('provider', __('Provider'), array_map(function ($provider) 
 }, getProviders()), $config['default_provider'], 'class="form-control"', 'Pilih default provider');
 
 // Provider l ist
-$form->addSelectList('template', __('Template'), array_map(function ($template) {
+$form->addSelectList('template', __('Template'), array_map(function($template){
     return [
         $template,
-        basename(ucfirst(str_replace('.html', '', $template)))
+        ucfirst(str_replace('.html', '', $template))
     ];
-}, getTemplates()), $config['default_template'] ?? 'default.html', 'class="form-control"', 'Pilih default provider');
+}, getTemplates()), $config['default_template']??'default.html', 'class="form-control"', 'Pilih default provider');
 
 // Fields
 foreach ($config['fields'] as $label => $value) {
-    if (substr($value ?? '', 0, 5) !== 'data:' && !in_array($label, ['openstate', 'closestate', 'letternumber'])) {
-        $form->addTextField('text', 'fields[' . $label . ']', $label, $value ?? '', 'class="form-control" style="width: 100%;"', '');
-    } else if (in_array($label, ['openstate', 'closestate'])) {
-        $form->addTextField('textarea', 'fields[' . $label . ']', $label, $value ?? '', 'class="form-control" style="width: 100%;"', '');
+    if (substr($value??'', 0,5) !== 'data:' && !in_array($label, ['openstate','closestate'])) {
+        $form->addTextField('text', 'fields[' . $label . ']', $label, $value??'', 'class="form-control" style="width: 100%;"', '');   
+    } else if (in_array($label, ['openstate','closestate'])) {
+        $form->addTextField('textarea', 'fields[' . $label . ']', $label, $value??'', 'class="form-control" style="width: 100%;"', '');   
     } else {
-        if ($label == 'letternumber') {
-            $form->addAnything($label, '
-                <input type="text" class="form-control" name="fields[letternumber]" value="' . ($value ?? '') . '"/>
-                <p>{no} : merupakan nomor surat. Nomor surat merekat pada setiap data anggota, jika surat bebas pustaka dicetak untuk ke sekian kalinya maka nomor yang akan digunakan adalah nomor sebelumnya.</p>
-            ');
-        } else {
-            $str_input = '<div class="row">';
-            $str_input .= '<div class="col-12">';
-            $str_input .= '<div id="imageFilename" class="s-margin__bottom-1">';
-            $str_input .= '<img src="' . $value . '" id="' . $label . '" class="d-block img-fluid rounded" alt="Image cover">';
-            $str_input .= '</div>';
-            $str_input .= '</div>';
-            $str_input .= '<div class="custom-file col-12">';
-            $str_input .= simbio_form_element::textField('file', $label, '', 'data-img="#' . $label . '" class="custom-file-input" id="customFile"');
-            $str_input .= '<label class="custom-file-label" for="customFile">' . __('Choose file') . '</label>';
-            $str_input .= '</div>';
-            $str_input .= ' <div class="mt-2 ml-2">Maximum ' . config('max_image_upload') . ' KB</div>';
-            $str_input .= '</div>';
-            $str_input .= '<textarea id="base64picstring" name="base64picstring" style="display: none;"></textarea>';
-            $str_input .= '</div></div></div>';
-            $form->addAnything($label, $str_input);
-        }
+        $str_input = '<div class="row">';
+        $str_input .= '<div class="col-12">';
+        $str_input .= '<div id="imageFilename" class="s-margin__bottom-1">';
+        $str_input .= '<img src="' . $value .'" id="' . $label . '" class="d-block img-fluid rounded" alt="Image cover">';
+        $str_input .= '</div>';
+        $str_input .= '</div>';
+        $str_input .= '<div class="custom-file col-12">';
+        $str_input .= simbio_form_element::textField('file', $label, '', 'data-img="#' . $label . '" class="custom-file-input" id="customFile"');
+        $str_input .= '<label class="custom-file-label" for="customFile">' . __('Choose file') . '</label>';
+        $str_input .= '</div>';
+        $str_input .= ' <div class="mt-2 ml-2">Maximum ' . config('max_image_upload') . ' KB</div>';
+        $str_input .= '</div>';
+        $str_input .= '<textarea id="base64picstring" name="base64picstring" style="display: none;"></textarea>';
+        $str_input .= '</div></div></div>';
+        $form->addAnything($label, $str_input);
     }
 }
 
@@ -155,34 +146,34 @@ $formOutput = ob_get_clean();
 
 $previewUrl = $_SERVER['PHP_SELF'] . '?' . httpQuery(['preview' => 'ok']);
 $content = <<<HTML
-    <div class="d-flex flex-row">
-        <div class="col-4" style="height: 100vh; overflow-y: auto; overflow-x: hidden">
-            {$formOutput}
-        </div>
-        <div class="col-8">
-            <iframe id="preview" src="{$previewUrl}" style="height: 100vh; width: 100%"></iframe>
-        </div>
+<div class="d-flex flex-row">
+    <div class="col-4" style="height: 100vh; overflow-y: auto; overflow-x: hidden">
+        {$formOutput}
     </div>
-    HTML;
+    <div class="col-8">
+        <iframe id="preview" src="{$previewUrl}" style="height: 100vh; width: 100%"></iframe>
+    </div>
+</div>
+HTML;
 $content .= <<<HTML
-    <script>
-        \$(document).ready(function() {
-            // setTimeout(() => {
-                // \$( '#preview' ).attr( 'src', function ( i, val ) { return val; });
-            // }, 1500);
-        })
+<script>
+    $(document).ready(function() {
+        // setTimeout(() => {
+            // $( '#preview' ).attr( 'src', function ( i, val ) { return val; });
+        // }, 1500);
+    })
 
-        \$(document).on('change', '.custom-file-input', function () {
-            // \$('img').attr('src',document.getElementById("image").files[0].name);
-            var input = \$(this);
-            var fReader = new FileReader();
-            fReader.readAsDataURL(input[0].files[0]);
-            fReader.onloadend = function (event) {
-                \$(input.data('img')).attr('src',event.target.result)
-            }
-            // let fileName = \$(this).val().replace(/\/g, '/').replace(/.*\//, '');
-            // // \$(this).parent('.custom-file').find('.custom-file-label').text(fileName);
-        });
-    </script>
-    HTML;
+    $(document).on('change', '.custom-file-input', function () {
+        // $('img').attr('src',document.getElementById("image").files[0].name);
+        var input = $(this);
+        var fReader = new FileReader();
+        fReader.readAsDataURL(input[0].files[0]);
+        fReader.onloadend = function (event) {
+            $(input.data('img')).attr('src',event.target.result)
+        }
+        // let fileName = $(this).val().replace(/\\/g, '/').replace(/.*\//, '');
+        // // $(this).parent('.custom-file').find('.custom-file-label').text(fileName);
+    });
+</script>
+HTML;
 include SB . 'admin' . DS . 'admin_template' . DS . 'notemplate_page_tpl.php';
