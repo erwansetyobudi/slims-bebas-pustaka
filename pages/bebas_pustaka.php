@@ -9,6 +9,8 @@
 
 use SLiMS\Pdf\Factory;
 use SLiMS\DB;
+$db = DB::getInstance();
+
 
 defined('INDEX_AUTH') OR die('Direct access not allowed!');
 
@@ -104,37 +106,41 @@ if (isset($_GET['action']) && $_GET['action'] === 'print')
 
     // Menyiapkan query untuk mendapatkan data anggota
     $questionMark = trim(str_repeat('?,', count($_SESSION['bebas_pustaka'])), ',');
-    $member = DB::getInstance()->prepare('
+    $member = $db->prepare('
         SELECT m.member_id, m.inst_name,
                m.member_name, 
                mt.member_type_name, 
                m.member_address 
         FROM member AS m 
         LEFT JOIN mst_member_type AS mt ON m.member_type_id = mt.member_type_id 
-        WHERE m.member_id IN (' . $questionMark . ')
-    ');
+        WHERE m.member_id IN (' . $questionMark . ')'
+    );
     $member->execute($_SESSION['bebas_pustaka']);
 
-    $content = [];
+ $content = [];
+    $now = date('Y-m-d H:i:s');
+
+    $insertHistory = $db->prepare('INSERT INTO bebas_pustaka_history (member_id, letter_number_format, created_at, updated_at, uid) VALUES (?, ?, ?, ?, ?)');
+
     while ($data = $member->fetch(PDO::FETCH_ASSOC)) {
         $content[] = $data;
+        $insertHistory->execute([
+            $data['member_id'],
+            'Auto-generated format',
+            $now,
+            $now,
+            $_SESSION['uid'] // Ambil user ID dari session
+        ]);
     }
 
-    // **UPDATE STATUS KEANGGOTAAN MENJADI PENDING**
-    $updateQuery = DB::getInstance()->prepare('
-        UPDATE member 
-        SET is_pending = 1 
-        WHERE member_id IN (' . $questionMark . ')
-    ');
+    $updateQuery = $db->prepare('UPDATE member SET is_pending = 1 WHERE member_id IN (' . $questionMark . ')');
     $updateQuery->execute($_SESSION['bebas_pustaka']);
 
-    // Kosongkan antrian setelah dicetak
     $_SESSION['bebas_pustaka'] = [];
-
-    // Cetak surat bebas pustaka
     Factory::setContent($content)->stream();
     exit;
 }
+
 
 ?>
 <div class="menuBox">
