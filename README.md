@@ -25,7 +25,8 @@ Modifikasi ini menambahkan beberapa fitur baru untuk meningkatkan fungsionalitas
 ---
 
 ## Contoh Pengaturan
-Contoh Pengaturan 
+
+```html
 Letter Number : PERPUS/B/{no}/{y}
 Open State : Yang bertandatangan di bawah ini Kepala Unit Perpustakaan menerangkan bahwa:
 Close State : 
@@ -33,14 +34,15 @@ Close State :
 <ol>
 <li>Telah mengembalikan semua pinjaman buku</li>
 <li>Telah mengumpulkan KTI/Skripsi/Tesis dalam bentuk hardcopy dan softcopy</li>
-<li>Telah mengunggah secara mandiri KTI/Skripsi/Tesis ke Repository Poltekkes Jakarta II</li>
+<li>Telah mengunggah secara mandiri KTI/Skripsi/Tesis ke Repository</li>
 <li>Telah mengumpulkan KTI/Skripsi/Tesis</li>
 </ol>
 
-City : Semarang
-Librarian Position : Kepala Unit Perpustakaan
-Librarian : Erwan Setyo Budi
+City : Semarang  
+Librarian Position : Kepala Unit Perpustakaan  
+Librarian : Erwan Setyo Budi  
 Num ID : NIP 1937349349349375
+
 
 
 
