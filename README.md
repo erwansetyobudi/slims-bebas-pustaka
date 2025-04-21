@@ -24,6 +24,26 @@ Modifikasi ini menambahkan beberapa fitur baru untuk meningkatkan fungsionalitas
 
 ---
 
+## Contoh Pengaturan
+Contoh Pengaturan 
+Letter Number : PERPUS/B/{no}/{y}
+Open State : Yang bertandatangan di bawah ini Kepala Unit Perpustakaan menerangkan bahwa:
+Close State : 
+
+<ol>
+<li>Telah mengembalikan semua pinjaman buku</li>
+<li>Telah mengumpulkan KTI/Skripsi/Tesis dalam bentuk hardcopy dan softcopy</li>
+<li>Telah mengunggah secara mandiri KTI/Skripsi/Tesis ke Repository Poltekkes Jakarta II</li>
+<li>Telah mengumpulkan KTI/Skripsi/Tesis</li>
+</ol>
+
+City : Semarang
+Librarian Position : Kepala Unit Perpustakaan
+Librarian : Erwan Setyo Budi
+Num ID : NIP 1937349349349375
+
+
+
 ## ⚙ **Cara Menggunakan**
 - Setelah diaktifkan, plugin ini akan **mengubah status keanggotaan menjadi pending** secara otomatis saat surat bebas pustaka dicetak.
 - Halaman daftar pengguna bebas pustaka dapat diakses melalui antarmuka SLiMS.
