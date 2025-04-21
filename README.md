@@ -35,3 +35,11 @@ Jika ada bug atau fitur yang ingin ditambahkan, silakan buat **issue** atau **pu
 📧 Hubungi: [erwans818@gmail.com](mailto:erwans818@gmail.com)  
 
 Terima kasih telah menggunakan **Bebas Pustaka SLiMS**! 🚀
+
+## ScreenShoot
+
+![image](https://github.com/user-attachments/assets/faacd040-251b-4c55-9fef-5b4724bfd713)
+
+![image](https://github.com/user-attachments/assets/4d1134db-88c7-40ed-85ae-638d3d3308e2)
+
+
