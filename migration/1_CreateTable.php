@@ -9,10 +9,10 @@ class CreateTable extends Migration
     {
         Schema::create('bebas_pustaka_history', function(Blueprint $table) {
             $table->autoIncrement('id');
+            $table->string('uid', 3)->notNull();
             $table->string('member_id', 20)->notNull();
             $table->text('letter_number_format')->notNull();
             $table->unique('member_id');
-            $table->integer('uid');
             $table->index('member_id');
             $table->fulltext('letter_number_format');
             $table->timestamps();
