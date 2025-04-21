@@ -175,25 +175,20 @@ if (isset($_GET['action']) && $_GET['action'] === 'print')
 /**
  * table spec
  */
-$table_spec = 'member as m 
-               LEFT JOIN mst_member_type as mt ON m.member_type_id = mt.member_type_id
-               INNER JOIN bebas_pustaka_history as bph ON m.member_id = bph.member_id';
+$table_spec = 'member AS m 
+    LEFT JOIN mst_member_type AS mt ON m.member_type_id = mt.member_type_id 
+    INNER JOIN bebas_pustaka_history AS bph ON m.member_id = bph.member_id 
+    LEFT JOIN user AS u ON bph.uid = u.user_id';
 
-// membuat datagrid
 $datagrid = new simbio_datagrid();
-
-/** 
- * Menyiapkan kolom
- */
 $datagrid->setSQLColumn(
-    'm.member_id AS ID_Anggota', 
+    'm.member_id AS ID_Anggota',
     'm.member_name AS Nama_Anggota',
-    'm.member_id AS ID_Anggota', 
     'mt.member_type_name AS Jenis_Keanggotaan',
-    'bph.id AS Nomor_Surat',
     'bph.letter_number_format AS Format_Nomor_Surat',
     'bph.created_at AS Tanggal_Dibuat',
-    'bph.updated_at AS Terakhir_Diperbarui'
+    'bph.updated_at AS Terakhir_Diperbarui',
+    'u.realname AS Dicetak_Oleh'
 );
 
 /** 
