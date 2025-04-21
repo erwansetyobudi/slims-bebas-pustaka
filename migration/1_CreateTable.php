@@ -11,16 +11,19 @@ class CreateTable extends Migration
             $table->autoIncrement('id');
             $table->string('member_id', 20)->notNull();
             $table->text('letter_number_format')->notNull();
+            $table->integer('uid')->nullable(); // tambahan kolom uid
+            $table->timestamps(); // created_at & updated_at
+
             $table->unique('member_id');
             $table->index('member_id');
             $table->fulltext('letter_number_format');
-            $table->timestamps();
+
             $table->engine = 'MyISAM';
         });
     }
 
     function down()
     {
-
+        Schema::dropIfExists('bebas_pustaka_history');
     }
 }
