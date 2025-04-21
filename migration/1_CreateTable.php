@@ -12,7 +12,7 @@ class CreateTable extends Migration
             $table->string('member_id', 20)->notNull();
             $table->text('letter_number_format')->notNull();
             $table->unique('member_id');
-            $table->integer('uid')->nullable()
+            $table->integer('uid')->nullable();
             $table->index('member_id');
             $table->fulltext('letter_number_format');
             $table->timestamps();
