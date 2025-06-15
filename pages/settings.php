@@ -2,7 +2,9 @@
 /**
  * @Created by          : Drajat Hasan
  * @Date                : 2022-06-08 13:47:37
- * @File name           : index.php
+ * @Modified            : Erwan Setyo Budi
+ * @Last Modified       : 2025-06-15 15:48:13
+ * @File name           : settings.php
  */
 
 use SLiMS\DB;
@@ -148,6 +150,9 @@ $previewUrl = $_SERVER['PHP_SELF'] . '?' . httpQuery(['preview' => 'ok']);
 $content = <<<HTML
 <div class="d-flex flex-row">
     <div class="col-4" style="height: 100vh; overflow-y: auto; overflow-x: hidden">
+        <div class="alert alert-info mb-3" style="font-size: 90%">
+            <strong>Info:</strong> Format <code>letternumber</code> harus mengandung <code>{no}</code> (nomor urut) dan <code>{y}</code> (tahun). Contoh: <code>{no}/KM.ILS/IV/{y}</code>
+        </div>
         {$formOutput}
     </div>
     <div class="col-8">
@@ -155,6 +160,7 @@ $content = <<<HTML
     </div>
 </div>
 HTML;
+
 $content .= <<<HTML
 <script>
     $(document).ready(function() {
