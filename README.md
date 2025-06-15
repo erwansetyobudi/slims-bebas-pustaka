@@ -8,12 +8,22 @@ Modifikasi ini menambahkan beberapa fitur baru untuk meningkatkan fungsionalitas
 
 ---
 
-## ✨ **Fitur Tambahan**
-1. **Merubah Status Keanggotaan Menjadi Pending**  
-   - Setelah **surat bebas pustaka dicetak**, status anggota akan otomatis berubah menjadi **pending** (`is_pending = 1`).
-   
-2. **Penambahan Halaman Daftar Pengguna yang Sudah Melakukan Bebas Pustaka**  
-   - Menampilkan daftar anggota yang telah menyelesaikan proses bebas pustaka.
+## ➕ Fitur Tambahan
+
+1. ✅ **Status Keanggotaan Menjadi Pending Otomatis**  
+   Setelah surat dicetak, status `is_pending` pada tabel anggota akan diset otomatis ke `1`.
+
+2. ✅ **Halaman Riwayat Bebas Pustaka**  
+   Tersedia daftar siapa saja yang sudah menyelesaikan proses, lengkap dengan nomor surat dan waktu.
+
+3. ✅ **Nomor Surat Reset Setiap Tahun**  
+   Nomor surat akan kembali dari **1** saat memasuki tahun baru, namun tetap mempertahankan urutan dalam tahun berjalan.
+
+4. ✅ **Penyimpanan UID (User ID)**  
+   Mencatat pustakawan (admin) yang mencetak surat, disimpan dalam kolom `uid` pada tabel `bebas_pustaka_history`.
+
+5. ✅ **Proteksi Duplikat Surat**  
+   Jika surat untuk anggota sudah pernah dicetak, sistem akan otomatis mengambil nomor lama dan tidak membuat entri ganda.
 
 ---
 
