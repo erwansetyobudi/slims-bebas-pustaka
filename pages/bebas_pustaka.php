@@ -3,14 +3,12 @@
  * @Created by          : Drajat Hasan
  * @Date                : 2022-06-08 13:47:37
  * @Modified by         : Erwan Setyo Budi
- * 
- * @File name           : index.php
+ * @Last Modified		: 2025-06-15 15:48:13
+ * @File name           : bebas_pustaka.php
  */
 
 use SLiMS\Pdf\Factory;
 use SLiMS\DB;
-$db = DB::getInstance();
-
 
 defined('INDEX_AUTH') OR die('Direct access not allowed!');
 
@@ -106,41 +104,123 @@ if (isset($_GET['action']) && $_GET['action'] === 'print')
 
     // Menyiapkan query untuk mendapatkan data anggota
     $questionMark = trim(str_repeat('?,', count($_SESSION['bebas_pustaka'])), ',');
-    $member = $db->prepare('
+    $member = DB::getInstance()->prepare('
         SELECT m.member_id, m.inst_name,
                m.member_name, 
                mt.member_type_name, 
                m.member_address 
         FROM member AS m 
         LEFT JOIN mst_member_type AS mt ON m.member_type_id = mt.member_type_id 
-        WHERE m.member_id IN (' . $questionMark . ')'
-    );
+        WHERE m.member_id IN (' . $questionMark . ')
+    ');
     $member->execute($_SESSION['bebas_pustaka']);
 
- $content = [];
+    $content = [];
     $now = date('Y-m-d H:i:s');
+    $year = date('Y');
 
-    $insertHistory = $db->prepare('INSERT INTO bebas_pustaka_history (member_id, letter_number_format, created_at, updated_at, uid) VALUES (?, ?, ?, ?, ?)');
+    // Hitung surat tahun ini
+    $countQuery = DB::getInstance()->prepare("SELECT COUNT(*) FROM bebas_pustaka_history WHERE YEAR(created_at) = ?");
+    $countQuery->execute([$year]);
+    $currentNoRaw = $countQuery->fetchColumn() + 1;
+    $currentNo = str_pad($currentNoRaw, 3, '0', STR_PAD_LEFT);
 
-    while ($data = $member->fetch(PDO::FETCH_ASSOC)) {
+
+    // Format nomor surat
+    $format = config('bebas_pustaka')['fields']['letternumber'] ?? 'PERPUS/B/{no}/{y}';
+    $year = date('Y');
+
+    // Hitung jumlah surat tahun ini
+    $countQuery = DB::getInstance()->prepare("SELECT COUNT(*) FROM bebas_pustaka_history WHERE YEAR(created_at) = ?");
+    $countQuery->execute([$year]);
+    $currentNo = $countQuery->fetchColumn() + 1;
+
+    // Ambil format dari settings atau pakai default
+    $setting = config('bebas_pustaka');
+    $formatTemplate = $setting['fields']['letternumber'] ?? '{no}/PUS/II.3.AU/M/{y}';
+
+    // Ganti placeholder
+    $finalLetterNumber = str_replace(
+        ['{no}', '{y}'],
+        [$currentNo, $year],
+        $formatTemplate
+    );
+
+
+
+
+    // Siapkan statement insert
+    $insertHistory = DB::getInstance()->prepare('
+        INSERT INTO bebas_pustaka_history 
+        (member_id, letter_number_format, created_at, updated_at, uid) 
+        VALUES (?, ?, ?, ?, ?)
+    ');
+
+// Hapus pemanggilan $insertHistory di luar foreach
+
+foreach ($_SESSION['bebas_pustaka'] as $member_id) {
+    // Ambil data anggota
+    $data = DB::getInstance()->query("
+        SELECT m.member_id, m.inst_name,
+               m.member_name, 
+               mt.member_type_name, 
+               m.member_address 
+        FROM member AS m 
+        LEFT JOIN mst_member_type AS mt ON m.member_type_id = mt.member_type_id 
+        WHERE m.member_id = '{$member_id}'
+    ")->fetch(PDO::FETCH_ASSOC);
+
+    if ($data) {
+        // Cek apakah sudah pernah dicetak
+        $check = DB::getInstance()->prepare("SELECT letter_number_format FROM bebas_pustaka_history WHERE member_id = ?");
+        $check->execute([$member_id]);
+        $existingNumber = $check->fetchColumn();
+
+        if ($existingNumber) {
+            // Pakai nomor lama
+            $data['letternumber'] = $existingNumber;
+        } else {
+            // Generate nomor baru dan simpan ke database
+            $data['letternumber'] = $finalLetterNumber;
+
+            $insertHistory->execute([
+                $member_id,
+                $finalLetterNumber,
+                $now,
+                $now,
+                $_SESSION['uid']
+            ]);
+
+            // Update nomor berikutnya agar tetap urut untuk member lainnya
+            $currentNo++;
+            $finalLetterNumber = str_replace(
+                ['{no}', '{y}'],
+                [$currentNo, $year],
+                $formatTemplate
+            );
+        }
+
         $content[] = $data;
-        $insertHistory->execute([
-            $data['member_id'],
-            'Auto-generated format',
-            $now,
-            $now,
-            $_SESSION['uid'] // Ambil user ID dari session
-        ]);
     }
+}
 
-    $updateQuery = $db->prepare('UPDATE member SET is_pending = 1 WHERE member_id IN (' . $questionMark . ')');
+
+
+    // **UPDATE STATUS KEANGGOTAAN MENJADI PENDING**
+    $updateQuery = DB::getInstance()->prepare('
+        UPDATE member 
+        SET is_pending = 1 
+        WHERE member_id IN (' . $questionMark . ')
+    ');
     $updateQuery->execute($_SESSION['bebas_pustaka']);
 
+    // Kosongkan antrian setelah dicetak
     $_SESSION['bebas_pustaka'] = [];
+
+    // Cetak surat bebas pustaka
     Factory::setContent($content)->stream();
     exit;
 }
-
 
 ?>
 <div class="menuBox">
