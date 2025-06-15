@@ -9,10 +9,10 @@ class CreateTable extends Migration
     {
         Schema::create('bebas_pustaka_history', function(Blueprint $table) {
             $table->autoIncrement('id');
-            $table->string('uid', 3)->notNull();
             $table->string('member_id', 20)->notNull();
+            $table->string('uid', 50)->nullable(); // fleksibel, bisa diisi null untuk kasus lama
             $table->text('letter_number_format')->notNull();
-            $table->unique('member_id');
+            $table->unique('member_id', 'member_id_unq');
             $table->index('member_id');
             $table->fulltext('letter_number_format');
             $table->timestamps();
@@ -22,6 +22,6 @@ class CreateTable extends Migration
 
     function down()
     {
-
+        Schema::dropIfExists('bebas_pustaka_history');
     }
 }
