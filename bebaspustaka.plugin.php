@@ -8,7 +8,7 @@
  * Author URI: https://github.com/erwansetyobudi/
  */
 use SLiMS\Plugins;
-
+use SLiMS\DB;
 $plugin = Plugins::getInstance();
 
 Plugins::getInstance()->registerAutoload(__DIR__);
